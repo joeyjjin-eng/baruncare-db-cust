@@ -1,0 +1,14 @@
+-- ============================================================
+-- ⚠️ 이 파일은 더 이상 사용하지 않습니다.
+--
+-- baruncare-tm 어드민과 데이터를 공유하기 위해 같은 DB(`baruncare_tm`)와
+-- 같은 테이블(`claim_applications`)을 사용합니다.
+-- 테이블 생성 스크립트는 아래 경로에 있습니다.
+--
+--    baruncare-tm/database/migrations/002_claim_applications.sql
+--
+-- 적용 절차:
+--    1) (최초만) baruncare-tm/database/schema.sql 로 DB·계정 생성
+--    2) mysql -u root -p baruncare_tm < ../baruncare-tm/database/migrations/002_claim_applications.sql
+--    3) baruncare-db/config/db.php 의 password 를 운영 비밀번호로 교체
+-- ============================================================

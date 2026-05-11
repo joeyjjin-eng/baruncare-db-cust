@@ -1,0 +1,5 @@
+/config/db.php
+/.htpasswd
+.DS_Store
+*.log
+.vscode/

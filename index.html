@@ -534,7 +534,7 @@ const AgreementSheet = ({ open, onClose, onSubmit }) => {
             >뒤로</button>
             <button
               type="button"
-              onClick={onSubmit}
+              onClick={() => onSubmit(checked)}
               disabled={!requiredOk}
               className="flex-[2] h-14 rounded-btn bg-primary text-white font-semibold text-[16px] active:bg-primary-dark disabled:bg-surface-disabled disabled:cursor-not-allowed tracking-wide"
             >다음</button>
@@ -641,17 +641,66 @@ const DoneScreen = ({ data, onHome }) => {
   );
 };
 
+/* ---------- API ---------- */
+// Apache 동일 도메인 배포 시 상대 경로 그대로 둡니다.
+// 다른 도메인이면 절대 URL로 변경 (예: 'https://baruncare.example.com/api/submit.php').
+const API_SUBMIT = './api/submit.php';
+
+async function submitApplication(data, agreements) {
+  const res = await fetch(API_SUBMIT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name:            data.name,
+      phone:           data.phone,
+      gender:          data.gender,
+      year:            parseInt(data.year, 10),
+      month:           parseInt(data.month, 10),
+      day:             parseInt(data.day, 10),
+      agreePrivacy:    !!agreements.privacy,
+      agreeThirdParty: !!agreements.thirdParty,
+      agreeMarketing:  !!agreements.marketing,
+    }),
+  });
+  let body = null;
+  try { body = await res.json(); } catch (_) {}
+  if (!res.ok || !body || body.ok !== true) {
+    const err = new Error(body?.error || 'NETWORK');
+    err.fields = body?.fields || [];
+    throw err;
+  }
+  return body; // { ok: true, id: N }
+}
+
 /* ---------- App ---------- */
 const App = () => {
   const [screen, setScreen] = useState('home'); // home | process | docs | form | done
   const [dir, setDir]       = useState('fwd');
   const [agreeOpen, setAgree] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState({
     name: '', phone: '', gender: '', year: '', month: '', day: '',
   });
 
   const go = useCallback((s, d = 'fwd') => { setDir(d); setScreen(s); }, []);
   const patch = (k, v) => setData(d => ({ ...d, [k]: v }));
+
+  const handleSubmit = async (agreements) => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await submitApplication(data, agreements);
+      setAgree(false);
+      go('done');
+    } catch (err) {
+      const msg = err?.message === 'VALIDATION'
+        ? '입력값을 확인해주세요.'
+        : '신청 처리 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+      alert(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const body = (() => {
     if (screen === 'home')    return <HomeScreen onStart={() => go('form')} onProcess={() => go('process')} onDocs={() => go('docs')} />;
@@ -676,7 +725,7 @@ const App = () => {
       <AgreementSheet
         open={agreeOpen}
         onClose={() => setAgree(false)}
-        onSubmit={() => { setAgree(false); go('done'); }}
+        onSubmit={handleSubmit}
       />
     </MobileLayout>
   );

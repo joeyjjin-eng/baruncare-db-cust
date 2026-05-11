@@ -1,0 +1,15 @@
+# =============================================
+# 루트 .htaccess
+# - /config/ 디렉토리 직접 접근 차단 (DB 비밀번호 보호)
+# =============================================
+RewriteEngine On
+RewriteRule ^config(/|$) - [F,L]
+
+# (선택) 캐시 — 정적 자산
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png  "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType text/css   "access plus 7 days"
+</IfModule>
